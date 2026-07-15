@@ -1,0 +1,9 @@
+package ee.mihkel.backend0626.repository;
+
+import ee.mihkel.backend0626.entity.Person;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface PersonRepository extends JpaRepository<Person, Long> {
+
+    Person findByEmail(String email);
+}

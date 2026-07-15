@@ -1,0 +1,94 @@
+package ee.mihkel.backend0626.controller;
+
+import ee.mihkel.backend0626.dto.Greeting;
+import ee.mihkel.backend0626.dto.HelloMessage;
+import ee.mihkel.backend0626.dto.PageableDto;
+import ee.mihkel.backend0626.entity.Product;
+import ee.mihkel.backend0626.repository.ProductRepository;
+import ee.mihkel.backend0626.util.ValidationUtil;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.HtmlUtils;
+
+import java.util.Date;
+import java.util.List;
+
+@Log4j2
+@RestController
+@RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:5173")
+public class ProductController {
+
+    private final ProductRepository productRepository;
+    private final ValidationUtil validationUtil;
+
+    // localhost:8080/products?page=0&size=2&sort=id,asc&categoryId=1
+    @GetMapping("products")
+    public Page<Product> getProducts(Pageable pageable, @RequestParam(required = false) Long categoryId) {
+        System.out.println(new Date() + " INFO Võtan tooteid: e-mail");
+        log.info("Võtan tooteid");
+        if (categoryId == null) {
+            return productRepository.findAll(pageable);
+        }
+        return productRepository.findAllByCategoryId(pageable, categoryId);
+    }
+
+    @GetMapping("products/all")
+    public List<Product> getAllProducts() {
+        return productRepository.findAll(); // SELECT * FROM <tabel>
+    }
+
+    @PostMapping("products")
+    public Product saveProduct(@RequestBody Product product) {
+        if (product.getId() != null) {
+            throw new RuntimeException("When adding product, don't give ID");
+        }
+        validationUtil.validateProduct(product);
+        return productRepository.save(product); // INSERT INTO (,,,) VALUES <tabel>
+    }
+
+    // DELETE localhost:8080/products/1 <-------
+    // DELETE localhost:8080/products?id=1
+
+    @CacheEvict(value = "products", key = "#id")
+    @DeleteMapping("products/{id}")
+    public List<Product> deleteProduct(@PathVariable Long id) {
+        productRepository.deleteById(id);
+        return productRepository.findAll();
+    }
+
+    @Cacheable(value = "products", key = "#id")
+    @GetMapping("products/{id}")
+    public Product getProduct(@PathVariable Long id) {
+        return productRepository.findById(id).orElseThrow();
+    }
+
+    @CachePut(value = "products", key = "#product.id")
+    @PutMapping("products")
+    public Product updateProduct(@RequestBody Product product) {
+        if (product.getId() == null) {
+            throw new RuntimeException("When updating product, you must give ID");
+        }
+        validationUtil.validateProduct(product);
+        return productRepository.save(product);
+    }
+
+    // 4xx ---> kliendi poolne viga / front-end viga / päringu alustaja viga
+    // 5xx ---> serveri poolne viga / back-end viga / päringu vastuvõtja viga
+
+    @MessageMapping("/products-update") // <--- kui tellin ja kogus väheneb, siis pöördub siia
+    @SendTo("/get-products") // avalehel subscriben
+    public Page<Product> greeting(PageableDto pageableDto) {
+        return productRepository.findAll(PageRequest.of(pageableDto.getPage(), pageableDto.getSize(), Sort.by("stock").ascending()));
+    }
+}
