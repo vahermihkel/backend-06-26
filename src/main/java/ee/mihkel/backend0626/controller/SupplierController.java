@@ -1,0 +1,30 @@
+package ee.mihkel.backend0626.controller;
+
+import ee.mihkel.backend0626.dto.Supplier1Product;
+import ee.mihkel.backend0626.dto.Supplier2Product;
+import ee.mihkel.backend0626.service.KafkaProducerService;
+import ee.mihkel.backend0626.service.SupplierService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+@RestController
+@RequiredArgsConstructor
+public class SupplierController {
+
+    private final SupplierService supplierService;
+    private final KafkaProducerService kafkaProducerService;
+
+    @GetMapping("supplier1")
+    private List<Supplier1Product> getSupplier1Products() {
+        return supplierService.getSupplier1Products();
+    }
+
+    @GetMapping("supplier2")
+    private List<Supplier2Product> getSupplier2Products() {
+        kafkaProducerService.sendMessage("Vaadati Supplier2 tooteid");
+        return supplierService.getSupplier2Products();
+    }
+}

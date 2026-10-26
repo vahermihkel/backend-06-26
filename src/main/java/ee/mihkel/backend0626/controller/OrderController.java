@@ -1,6 +1,8 @@
 package ee.mihkel.backend0626.controller;
 
 import ee.mihkel.backend0626.dto.OrderRowDto;
+import ee.mihkel.backend0626.dto.ParcelMachine;
+import ee.mihkel.backend0626.dto.PaymentLink;
 import ee.mihkel.backend0626.entity.Order;
 import ee.mihkel.backend0626.entity.OrderRow;
 import ee.mihkel.backend0626.repository.OrderRepository;
@@ -13,7 +15,6 @@ import java.util.concurrent.ExecutionException;
 
 @RestController
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173")
 public class OrderController {
 
     private final OrderService orderService;
@@ -29,7 +30,19 @@ public class OrderController {
     }
 
     @PostMapping("orders")
-    public Order saveOrder(@RequestBody List<OrderRowDto> orderRowDtos) {
-        return orderService.saveOrder(orderRowDtos);
+    public PaymentLink saveOrder(@RequestBody List<OrderRowDto> orderRowDtos) {
+         Order order = orderService.saveOrder(orderRowDtos); // miks salvestada enne? 1) Maksesse saama saata ID
+        // 2) Kui raha läheb maha, aga andmebaasi miskipärast ei salvestu, siis on jälg olemas
+        return orderService.makePayment(order);
+    }
+
+    @GetMapping("check-payment")
+    public boolean checkPayment(@RequestParam String paymentReference) {
+        return orderService.checkPayment(paymentReference);
+    }
+
+    @GetMapping("parcelmachines")
+    public List<ParcelMachine> getParcelMachines(@RequestParam String country) {
+        return orderService.getParcelMachines(country);
     }
 }

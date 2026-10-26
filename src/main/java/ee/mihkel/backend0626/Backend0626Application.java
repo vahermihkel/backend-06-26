@@ -3,11 +3,13 @@ package ee.mihkel.backend0626;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableCaching
 @EnableScheduling
+@EnableKafka
 public class Backend0626Application {
 
     public static void main(String[] args) {
@@ -26,10 +28,10 @@ public class Backend0626Application {
 // 8. K 08.07 Unit Testing
 // 9. T 14.07 17.30-20.45 Integration testing. email. erinevad keskkonnad
 //10. K 15.07 Render (database, backend, frontend)
-//11. E 20.07 Kafka (message - async)
-//12. N 23.07 OAuth Google
-//13. E 27.07 pakiautomaadid (Omniva) + makse (EveryPay)
-//14. N 30.07
+//11. E 20.07 pakiautomaadid (Omniva) + makse (EveryPay)
+//12. K 22.07 Kafka (message - async)
+//13. E 27.07 OAuth Google
+//14. K 29.07
 //15. T 04.08
 //16. N 06.08
 //17. T 11.08

@@ -22,6 +22,8 @@ public class Order {
     private Long id;
     private double sum;
     private Date created;
+    private String parcelMachine;
+    private boolean paid;
 
     @ManyToOne
     private Person person;
